@@ -27,10 +27,16 @@ def calculate_angle(a, b, c):
 
 
 def change_mode(mode_letter: str):
-    global counter, mode, angle
+    global counter, mode, angle, exercise_name
     counter = 0
     angle = 0
     mode = mode_letter
+    # set exercise based on letter
+    if mode_letter == "p":
+        exercise_name = "Pushups"
+    elif mode_letter == "b":
+        exercise_name = "Bicep Curls"
+
     print(f"debug: mode - {mode_letter}")
 
 
@@ -38,6 +44,7 @@ cap = cv2.VideoCapture("./output.mp4")  # video interface
 
 # set vars
 mode = "n"
+exercise_name = "None"
 counter = 0
 stage = "None"
 
@@ -98,7 +105,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                 # Curl counter logic
                 if angle > 150:
                     stage = "down"
-                if angle < 90 and stage == "down":
+                if angle < 40 and stage == "down":
                     stage = "up"
                     counter += 1
                     print(f"debug: bicep counter = {counter}")  # debug
@@ -148,8 +155,18 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
         # display info
         cv2.putText(
             image,
-            f"Reps: {counter}",
+            (f"Selected Exercise: {exercise_name}"),
             (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 225, 0),
+            2,
+        )
+
+        cv2.putText(
+            image,
+            f"Reps: {counter}",
+            (10, 60),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
             (0, 255, 0),
@@ -161,7 +178,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
         cv2.putText(
             image,
             f"Stage: {stage}",
-            (10, 60),
+            (10, 90),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
             (0, 255, 0),

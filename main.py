@@ -37,7 +37,7 @@ def change_mode(mode_letter: str):
 cap = cv2.VideoCapture("./output.mp4")  # video interface
 
 # set vars
-mode = ""
+mode = "n"
 counter = 0
 stage = "None"
 
@@ -63,10 +63,45 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
             landmarks = results.pose_landmarks.landmark
 
             # detect mode and monitor
-            if mode == "":
+            if mode == "n":
                 pass
             elif mode == "b":  # do bicep curl detection
-                pass
+                # Get coordinates
+                shoulder = [
+                    landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+                    landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y,
+                ]
+                elbow = [
+                    landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
+                    landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].y,
+                ]
+                wrist = [
+                    landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
+                    landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].y,
+                ]
+
+                # Calculate angle
+                angle = calculate_angle(shoulder, elbow, wrist)
+
+                # Visualize angle
+                cv2.putText(
+                    image,
+                    str(angle),
+                    tuple(np.multiply(elbow, [640, 480]).astype(int)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (255, 255, 255),
+                    2,
+                    cv2.LINE_AA,
+                )
+
+                # Curl counter logic
+                if angle > 150:
+                    stage = "down"
+                if angle < 90 and stage == "down":
+                    stage = "up"
+                    counter += 1
+                    print(f"debug: bicep counter = {counter}")  # debug
             elif mode == "p":  # do pushup detection
                 # Get coordinates
                 shoulder = [
@@ -105,21 +140,21 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                     stage = "up"
                     counter += 1
                     position = None
+                    print(f"debug: pushup counter = {counter}")  # debug
 
         except Exception as E:
             print(E)
 
-        # display info based on mode
-        if mode == "p":
-            cv2.putText(
-                image,
-                f"Push-ups: {counter}",
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 255, 0),
-                2,
-            )
+        # display info
+        cv2.putText(
+            image,
+            f"Reps: {counter}",
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0),
+            2,
+        )
 
         # common stats
         # Display stage
@@ -149,6 +184,8 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
             break
         elif cv2.waitKey(10) & 0xFF == ord("p"):  # set mode - pushup
             change_mode("p")
+        elif cv2.waitKey(10) & 0xFF == ord("b"):  # set mode - bicep curl
+            change_mode("b")
 
     cap.release()
     cv2.destroyAllWindows()

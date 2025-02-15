@@ -26,6 +26,14 @@ def calculate_angle(a, b, c):
     return angle
 
 
+def change_mode(mode_letter: str):
+    global counter, mode, angle
+    counter = 0
+    angle = 0
+    mode = mode_letter
+    print(f"debug: mode - {mode_letter}")
+
+
 cap = cv2.VideoCapture("./output.mp4")  # video interface
 
 # set vars
@@ -140,7 +148,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
         if cv2.waitKey(10) & 0xFF == ord("q"):
             break
         elif cv2.waitKey(10) & 0xFF == ord("p"):  # set mode - pushup
-            mode = "p"
+            change_mode("p")
 
     cap.release()
     cv2.destroyAllWindows()
